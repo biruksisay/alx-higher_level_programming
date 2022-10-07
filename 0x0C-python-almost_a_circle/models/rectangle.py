@@ -1,166 +1,136 @@
 #!/usr/bin/python3
-"""
-the class Rectangle that inherits from Base
-"""
-from .base import Base
 
+"""A module for Base class"""
 
-class Rectangle(Base):
-    """
-    A representation of a rectangle
-    """
-    def __init__(self, width, height, x=0, y=0, id=None):
-        """
-        Init Class
-        """
-        self.width = width
-        self.height = height
-        self.x = x
-        self.y = y
-        super().__init__(id)
+import json
+from os import path
 
-    @property
-    def width(self):
-        """
-            Width Getter
-        """
-        return self.__width
+class Base:
+    """A base class"""
 
-    @property
-    def height(self):
-        """
-            height Getter
-        """
-        return self.__height
+    __nb_objects = 0
 
-    @property
-    def x(self):
-        """
-            x Getter
-        """
-        return self.__x
-
-    @property
-    def y(self):
-        """
-            y Getter
-        """
-        return self.__y
-
-    @width.setter
-    def width(self, value):
-        """
-            Width Setter
-        Attribute:
-            Value(int): value to assign
-        Raises:
-            TypeError: Value must be int
-            ValueError: Value must be > 0
-        """
-        if type(value) is not int:
-            raise TypeError("width must be an integer")
-        if value <= 0:
-            raise ValueError("width must be > 0")
-        self.__width = value
-
-    @height.setter
-    def height(self, value):
-        """
-            height Setter
-        Attribute:
-            Value(int): value to assign
-        Raises:
-            TypeError: Value must be int
-            ValueError: Value must be > 0
-        """
-        if type(value) is not int:
-                raise TypeError("height must be an integer")
-        if value <= 0:
-            raise ValueError("height must be > 0")
-        self.__height = value
-
-    @x.setter
-    def x(self, value):
-        """
-            x Setter
-        Attribute:
-            Value(int): value to assign
-        Raises:
-            TypeError: Value must be int
-            ValueError: Value must be >= 0
-        """
-        if type(value) is not int:
-            raise TypeError("x must be an integer")
-        if value < 0:
-            raise ValueError("x must be >= 0")
-        self.__x = value
-
-    @y.setter
-    def y(self, value):
-        """
-            Width Setter
-        Attribute:
-            Value(int): value to assign
-        Raises:
-            TypeError: Value must be int
-            ValueError: Value must be >= 0
-        """
-        if type(value) is not int:
-                raise TypeError("y must be an integer")
-        if value < 0:
-            raise ValueError("y must be >= 0")
-        self.__y = value
-
-    def area(self):
-        """
-            Define The Area of Rectangle
-        """
-        return self.__width * self.__height
-
-    def display(self):
-        """
-            Display The Rectangle Using  '#'
-        """
-        print(("\n" * self.__y) +
-              "\n".join(((" " * self.__x) + ("#" * self.__width))
-                        for i in range(self.__height)))
-
-    def __str__(self):
-        """
-            String Informal of the Rectangle
-        """
-        return "[Rectangle] ({:d}) {:d}/{:d} - {:d}/{:d}".format(self.id,
-                                                                 self.__x,
-                                                                 self.__y,
-                                                                 self.__width,
-                                                                 self.__height)
-
-    def update(self, *args, **kwargs):
-        """
-            Update Multiple Atrr of The Rectangle
-        """
-        i = 0
-        if args:
-            for arg in args:
-                if i == 0:
-                    self.id = arg
-                if i == 1:
-                    self.width = arg
-                if i == 2:
-                    self.height = arg
-                if i == 3:
-                    self.x = arg
-                if i == 4:
-                    self.y = arg
-                i += 1
+    def __init__(self, id=None):
+        """Initialize base class"""
+        if id is not None:
+            self.id = id
         else:
-            for arg in kwargs:
-                setattr(self, arg, kwargs.get(arg))
+            Base.__nb_objects += 1
+            self.id = Base.__nb_objects
 
-    def to_dictionary(self):
-        """
-            returns the dictionary
-            representation of a Rectangle
-        """
-        return {'id': self.id, 'width': self.width,
-                'height': self.height, 'x': self.x, 'y': self.y}
+    @staticmethod
+    def to_json_string(list_dictionaries):
+        """Returns the JSON string representation of list_dictionaries"""
+        if list_dictionaries is None:
+            return "[]"
+        else:
+            return json.dumps(list_dictionaries)
+
+    @classmethod
+    def save_to_file(cls, list_objs):
+        """Writes the JSON string representation of list_objs to a file"""
+        filename = cls.__name__ + ".json"
+        list_dict = []
+
+        if list_objs is not None:
+            for i in list_objs:
+                list_dict.append(i.to_dictionary())
+
+        j_string = cls.to_json_string(list_dict)
+
+        with open(filename, mode='w') as f:
+            f.write(j_string)
+
+    @staticmethod
+    def from_json_string(json_string):
+        """Returns the list of the JSON string representation json_string"""
+        if json_string is None or json_string == "":
+            return []
+        list_dict = json.loads(json_string)
+        return list_dict
+
+    @classmethod
+    def create(cls, **dictionary):
+        """Returns an instance with all attributes already set"""
+        if cls.__name__ == "Rectangle":
+            dummy = cls(1, 3)
+        if cls.__name__ == "Square":
+            dummy = cls(1)
+        dummy.update(**dictionary)
+        return dummy
+
+    @classmethod
+    def load_from_file(cls):
+        """Returns a list of instances"""
+        my_list = []
+
+        filename = cls.__name__ + ".json"
+        if path.exists(filename):
+            with open(filename, encoding='utf-8') as f:
+                list_dict = cls.from_json_string(f.read())
+            for dict in list_dict:
+                my_list.append(cls.create(**dict))
+        return my_list
+
+    @classmethod
+    def save_to_file_csv(cls, list_objs):
+        """Writes the JSON string representation of list_objs to a file"""
+        filename = cls.__name__ + ".csv"
+        list_dict = []
+
+        if list_objs is not None:
+            for i in list_objs:
+                list_dict.append(i.to_dictionary())
+
+        j_string = cls.to_json_string(list_dict)
+
+        with open(filename, mode='w') as f:
+            f.write(j_string)
+
+    @classmethod
+    def load_from_file_csv(cls):
+        """Returns a list of instances"""
+        my_list = []
+
+        filename = cls.__name__ + ".csv"
+        if path.exists(filename):
+            with open(filename, encoding='utf-8') as f:
+                list_dict = cls.from_json_string(f.read())
+            for dict in list_dict:
+                my_list.append(cls.create(**dict))
+        return my_list
+
+    @staticmethod
+    def draw(list_rectangles, list_squares):
+        '''Opens a window and draws all the Rectangles and Squares'''
+
+        import turtle
+        import time
+        from random import randrange
+
+        t = turtle.Turtle()
+        position = t.position()
+        t.color("orange")
+        turtle.Screen().colormode(255)
+        t.shape("turtle")
+        t.pensize(2)
+        t.fillcolor("purple")
+
+        for o in (list_rectangles + list_squares):
+            t.setposition(0, 0)
+            t.color((randrange(255), randrange(255), randrange(255)))
+            Base.drawRect(t, o)
+            time.sleep(2)
+        time.sleep(10)
+
+    @staticmethod
+    def drawRect(t, rect):
+        t.setposition(rect.x, rect.y)
+        t.forward(rect.width)
+        t.left(90)
+        t.forward(rect.height)
+        t.left(90)
+        t.forward(rect.width)
+        t.left(90)
+        t.forward(rect.height)
+        t.left(90)
