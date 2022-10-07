@@ -1,136 +1,140 @@
 #!/usr/bin/python3
+'''
+    Class Rectangle
+'''
+from models.base import Base
 
-"""A module for Base class"""
 
-import json
-from os import path
+class Rectangle(Base):
+    '''
+        Defining the Rectangle class
+        Inherits from:
+            Base
+    '''
 
-class Base:
-    """A base class"""
+    def __init__(self, width, height, x=0, y=0, id=None):
+        self.width = width
+        self.height = height
+        self.x = x
+        self.y = y
+        super().__init__(id)
 
-    __nb_objects = 0
+    @property
+    def width(self):
+        '''
+            Returning private attribute
+        '''
+        return self.__width
 
-    def __init__(self, id=None):
-        """Initialize base class"""
-        if id is not None:
-            self.id = id
-        else:
-            Base.__nb_objects += 1
-            self.id = Base.__nb_objects
+    @width.setter
+    def width(self, value):
+        '''
+            Setting private attribute
+        '''
+        self.setter_validation("width", value)
+        self.__width = value
+
+    @property
+    def height(self):
+        '''
+            Returning private attribute
+        '''
+        return self.__height
+
+    @height.setter
+    def height(self, value):
+        '''
+            Setting private attribute
+        '''
+        self.setter_validation("height", value)
+        self.__height = value
+
+    @property
+    def x(self):
+        '''
+            Returning private attribute
+        '''
+        return self.__x
+
+    @x.setter
+    def x(self, value):
+        '''
+            Setting private attribute
+        '''
+        self.setter_validation("x", value)
+        self.__x = value
+
+    @property
+    def y(self):
+        '''
+            Returning private attribute
+        '''
+        return self.__y
+
+    @y.setter
+    def y(self, value):
+        '''
+            Setting private attribute
+        '''
+        self.setter_validation("y", value)
+        self.__y = value
+
+    def area(self):
+        '''
+            Returns the area of the rectangle
+        '''
+        return (self.height * self.width)
+
+    def display(self):
+        '''
+            Prints to stdout the representation of the rectangle
+        '''
+        rectangle = ""
+        print("\n" * self.y, end="")
+        for i in range(self.height):
+            rectangle += (" " * self.x) + ("#" * self.width) + "\n"
+        print(rectangle, end="")
+
+    def update(self, *args, **kwargs):
+        '''
+            Updates the arguments in the class
+        '''
+        if len(args) == 0:
+            for key, val in kwargs.items():
+                self.__setattr__(key, val)
+            return
+        try:
+            self.id = args[0]
+            self.width = args[1]
+            self.height = args[2]
+            self.x = args[3]
+            self.y = args[4]
+        except IndexError:
+            pass
+
+    def to_dictionary(self):
+        '''
+            Returns a dictionary representation of this class
+        '''
+        return {'x': getattr(self, "x"),
+                'y': getattr(self, "y"),
+                'id': getattr(self, "id"),
+                'height': getattr(self, "height"),
+                'width': getattr(self, "width")}
 
     @staticmethod
-    def to_json_string(list_dictionaries):
-        """Returns the JSON string representation of list_dictionaries"""
-        if list_dictionaries is None:
-            return "[]"
-        else:
-            return json.dumps(list_dictionaries)
+    def setter_validation(attribute, value):
+        if type(value) != int:
+            raise TypeError("{} must be an integer".format(attribute))
+        if attribute == "x" or attribute == "y":
+            if value < 0:
+                raise ValueError("{} must be >= 0".format(attribute))
+        elif value <= 0:
+            raise ValueError("{} must be > 0".format(attribute))
 
-    @classmethod
-    def save_to_file(cls, list_objs):
-        """Writes the JSON string representation of list_objs to a file"""
-        filename = cls.__name__ + ".json"
-        list_dict = []
-
-        if list_objs is not None:
-            for i in list_objs:
-                list_dict.append(i.to_dictionary())
-
-        j_string = cls.to_json_string(list_dict)
-
-        with open(filename, mode='w') as f:
-            f.write(j_string)
-
-    @staticmethod
-    def from_json_string(json_string):
-        """Returns the list of the JSON string representation json_string"""
-        if json_string is None or json_string == "":
-            return []
-        list_dict = json.loads(json_string)
-        return list_dict
-
-    @classmethod
-    def create(cls, **dictionary):
-        """Returns an instance with all attributes already set"""
-        if cls.__name__ == "Rectangle":
-            dummy = cls(1, 3)
-        if cls.__name__ == "Square":
-            dummy = cls(1)
-        dummy.update(**dictionary)
-        return dummy
-
-    @classmethod
-    def load_from_file(cls):
-        """Returns a list of instances"""
-        my_list = []
-
-        filename = cls.__name__ + ".json"
-        if path.exists(filename):
-            with open(filename, encoding='utf-8') as f:
-                list_dict = cls.from_json_string(f.read())
-            for dict in list_dict:
-                my_list.append(cls.create(**dict))
-        return my_list
-
-    @classmethod
-    def save_to_file_csv(cls, list_objs):
-        """Writes the JSON string representation of list_objs to a file"""
-        filename = cls.__name__ + ".csv"
-        list_dict = []
-
-        if list_objs is not None:
-            for i in list_objs:
-                list_dict.append(i.to_dictionary())
-
-        j_string = cls.to_json_string(list_dict)
-
-        with open(filename, mode='w') as f:
-            f.write(j_string)
-
-    @classmethod
-    def load_from_file_csv(cls):
-        """Returns a list of instances"""
-        my_list = []
-
-        filename = cls.__name__ + ".csv"
-        if path.exists(filename):
-            with open(filename, encoding='utf-8') as f:
-                list_dict = cls.from_json_string(f.read())
-            for dict in list_dict:
-                my_list.append(cls.create(**dict))
-        return my_list
-
-    @staticmethod
-    def draw(list_rectangles, list_squares):
-        '''Opens a window and draws all the Rectangles and Squares'''
-
-        import turtle
-        import time
-        from random import randrange
-
-        t = turtle.Turtle()
-        position = t.position()
-        t.color("orange")
-        turtle.Screen().colormode(255)
-        t.shape("turtle")
-        t.pensize(2)
-        t.fillcolor("purple")
-
-        for o in (list_rectangles + list_squares):
-            t.setposition(0, 0)
-            t.color((randrange(255), randrange(255), randrange(255)))
-            Base.drawRect(t, o)
-            time.sleep(2)
-        time.sleep(10)
-
-    @staticmethod
-    def drawRect(t, rect):
-        t.setposition(rect.x, rect.y)
-        t.forward(rect.width)
-        t.left(90)
-        t.forward(rect.height)
-        t.left(90)
-        t.forward(rect.width)
-        t.left(90)
-        t.forward(rect.height)
-        t.left(90)
+    def __str__(self):
+        '''
+            Overwritting the str method
+        '''
+        return "[Rectangle] ({}) {}/{} - {}/{}".format(self.id, self.x, self.y,
+                                                       self.width, self.height)
